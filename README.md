@@ -1,1 +1,1 @@
-# bit-torrent-client-go
+# Torrent client

@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/adrg2/torrent-client/cmd"
+)
 
 func main() {
-	fmt.Printf("Hola mundo")
+	cmd.Execute()
 }
