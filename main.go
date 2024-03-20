@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/adrg2/torrent-client/cmd"
+	cli "github.com/adrg2/torrent-client/cmd"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	cmd.Execute()
+	rootCmd := &cobra.Command{Use: "torrent-cli"}
+	rootCmd.AddCommand(cli.InitDownloadCmd())
+	rootCmd.Execute()
 }
