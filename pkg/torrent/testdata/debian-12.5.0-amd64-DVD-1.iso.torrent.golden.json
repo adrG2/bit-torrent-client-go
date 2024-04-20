@@ -1,6 +1,6 @@
 {
   "Announce": "http://bttracker.debian.org:6969/announce",
-  "InfoHash": [
+  "BenInfoHash": [
     138,
     104,
     108,

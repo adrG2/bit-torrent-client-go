@@ -12,7 +12,7 @@ import (
 // TorrentFile encodes the metadata from a .torrent file
 type TorrentFile struct {
 	Announce    string
-	InfoHash    [20]byte
+	BenInfoHash [20]byte
 	PieceHashes [][20]byte
 	PieceLength int
 	Length      int
@@ -58,7 +58,7 @@ func (bto *bencodeTorrent) toTorrentFile() (TorrentFile, error) {
 	}
 	t := TorrentFile{
 		Announce:    bto.Announce,
-		InfoHash:    infoHash,
+		BenInfoHash: infoHash,
 		PieceHashes: pieceHashes,
 		PieceLength: bto.Info.PieceLength,
 		Length:      bto.Info.Length,
