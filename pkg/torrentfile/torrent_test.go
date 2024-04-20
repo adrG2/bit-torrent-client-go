@@ -1,4 +1,4 @@
-package torrent
+package torrentfile
 
 import (
 	"encoding/json"
@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var update = flag.Bool("update", false, "update .golden.json files")
+var update = flag.Bool("update", false, "update .json files")
 
 func TestOpen(t *testing.T) {
 	torrent, err := Open("testdata/debian-12.5.0-amd64-DVD-1.iso.torrent")
 	require.Nil(t, err)
 
-	input := "testdata/debian-12.5.0-amd64-DVD-1.iso.torrent.golden.json"
+	input := "testdata/debian-12.5.0-amd64-DVD-1.iso.torrent.json"
 	if *update {
 		serialized, err := json.MarshalIndent(torrent, "", "  ")
 		require.Nil(t, err)
@@ -24,9 +24,9 @@ func TestOpen(t *testing.T) {
 	}
 
 	expected := TorrentFile{}
-	golden, err := os.ReadFile(input)
+	g, err := os.ReadFile(input)
 	require.Nil(t, err)
-	err = json.Unmarshal(golden, &expected)
+	err = json.Unmarshal(g, &expected)
 	require.Nil(t, err)
 
 	assert.Equal(t, expected, torrent)
