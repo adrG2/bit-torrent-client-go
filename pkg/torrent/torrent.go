@@ -67,24 +67,23 @@ func (bto *bencodeTorrent) toTorrentFile() (TorrentFile, error) {
 	return t, nil
 }
 
+// hashSize specifies the length of each torrent piece SHA-1 hash in bytes.
+const hashSize = 20
+
 // Compute SHA-1 hash for bencodeInfo(name, size and piece hashes). The SHA-1 hash is 20 bytes long
-func (i *bencodeInfo) hash() ([20]byte, error) {
+func (i *bencodeInfo) hash() ([hashSize]byte, error) {
 	var buf bytes.Buffer
 	err := bencode.Marshal(&buf, *i)
 	if err != nil {
-		return [20]byte{}, err
+		return [hashSize]byte{}, err
 	}
 	h := sha1.Sum(buf.Bytes())
 	return h, nil
 }
 
-// hashSize specifies the length of each torrent piece hash in bytes.
-// Each sha1 hash is 20 bytes long.
-const hashSize = 20
-
 // splitPieceHashes Splits the hashes of the parts into a [20]byte slice.
 // It takes 20-byte ranges from the pieces buffer, this represents each hash of each piece, and copies it into an array of hashes.
-func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
+func (i *bencodeInfo) splitPieceHashes() ([][hashSize]byte, error) {
 	buf := []byte(i.Pieces)
 	if isValidPieces(buf) {
 		err := fmt.Errorf("Received malformed pieces of length %d", len(buf))
@@ -95,7 +94,7 @@ func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
 
 	// Initialize a slice to store the piece hashes.
 	// Each element of the slice is an array of 20 bytes representing a hash.
-	hashes := make([][20]byte, numHashes)
+	hashes := make([][hashSize]byte, numHashes)
 
 	// Copy piece hashes, 20 bytes at a time, from the buffer.
 	// These segments are of length 20 bytes, which is the length of each piece hash.
