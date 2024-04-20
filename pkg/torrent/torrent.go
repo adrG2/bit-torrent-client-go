@@ -67,6 +67,7 @@ func (bto *bencodeTorrent) toTorrentFile() (TorrentFile, error) {
 	return t, nil
 }
 
+// Compute SHA-1 hash for bencodeInfo(name, size and piece hashes). The SHA-1 hash is 20 bytes long
 func (i *bencodeInfo) hash() ([20]byte, error) {
 	var buf bytes.Buffer
 	err := bencode.Marshal(&buf, *i)
@@ -77,24 +78,12 @@ func (i *bencodeInfo) hash() ([20]byte, error) {
 	return h, nil
 }
 
-// hashBytesLen specifies the length of each torrent piece hash in bytes.
-// According to the specification, each hash is 20 bytes long.
-const hashBytesLen = 20
+// hashSize specifies the length of each torrent piece hash in bytes.
+// Each sha1 hash is 20 bytes long.
+const hashSize = 20
 
-// isValidPieces validates the pieces by ensuring each piece has a length of 20 bytes.
-// If the total number of bytes is not a multiple of 20, it indicates malformed pieces.
-func isValidPieces(buf []byte) bool {
-	return len(buf)%hashBytesLen != 0
-}
-
-// calculateNumHashes calculates the number of hashes based on the length of the pieces in bytes.
-// It divides the length of the pieces by the length of each hash, which is 20 bytes.
-func calculateNumHashes(buf []byte) int {
-	return len(buf) / hashBytesLen
-}
-
-// splitPieceHashes splits the piece hashes from the bencodeInfo structure into individual hashes.
-// It returns a slice of arrays, where each array represents a piece hash (20 bytes each).
+// splitPieceHashes Splits the hashes of the parts into a [20]byte slice.
+// It takes 20-byte ranges from the pieces buffer, this represents each hash of each piece, and copies it into an array of hashes.
 func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
 	buf := []byte(i.Pieces)
 	if isValidPieces(buf) {
@@ -109,13 +98,24 @@ func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
 	hashes := make([][20]byte, numHashes)
 
 	// Copy piece hashes, 20 bytes at a time, from the buffer.
-	// It extracts segments from the byte array of all pieces (one byte per position).
 	// These segments are of length 20 bytes, which is the length of each piece hash.
 	// It increments by 20 by multiplying the loop index by the hash length in bytes.
+	// example: buf[0 -> byte,..,20 -> byte] -> hashes[0 -> [0 -> byte,..,20 -> byte]]
 	for i := 0; i < numHashes; i++ {
 		dst := hashes[i][:]
-		src := buf[i*hashBytesLen : (i+1)*hashBytesLen]
+		src := buf[i*hashSize : (i+1)*hashSize]
 		copy(dst, src)
 	}
 	return hashes, nil
+}
+
+// isValidPieces validates the pieces by ensuring each piece has a length of 20 bytes.
+// If the total number of bytes is not a multiple of 20, it indicates malformed pieces.
+func isValidPieces(buf []byte) bool {
+	return len(buf)%hashSize != 0
+}
+
+// calculateNumHashes Compares length of the pieces buffer with the size of each hash, which is 20 bytes.
+func calculateNumHashes(buf []byte) int {
+	return len(buf) / hashSize
 }
