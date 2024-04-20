@@ -6,30 +6,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CobraFn function definion of run cobra command
-type CobraFn func(cmd *cobra.Command, args []string)
+type Cobra func(cmd *cobra.Command, args []string)
 
-const inputPath = "input"
-const outPath = "out"
+const in = "input"
+const out = "out"
 
-// InitDownloadCmd initialize download command
 func InitDownloadCmd() *cobra.Command {
 	downloadCmd := &cobra.Command{
 		Use:   "download",
-		Short: "Download torrent",
-		Run:   runDownloadFn(),
+		Short: "Download torrent file",
+		Run:   runDownload(),
 	}
 
-	downloadCmd.Flags().StringP(inputPath, "i", "", "input file path")
-	downloadCmd.Flags().StringP(outPath, "o", "", "out file path")
+	downloadCmd.Flags().StringP(in, "i", "", "input file path")
+	downloadCmd.Flags().StringP(out, "o", "", "output file path")
 
 	return downloadCmd
 }
 
-func runDownloadFn() CobraFn {
+func runDownload() Cobra {
 	return func(cmd *cobra.Command, args []string) {
-		input, _ := cmd.Flags().GetString(inputPath)
-		out, _ := cmd.Flags().GetString(outPath)
+		input, _ := cmd.Flags().GetString(in)
+		out, _ := cmd.Flags().GetString(out)
 
 		log.Printf("{input:\"%s\", output:\"%s\"}", input, out)
 	}

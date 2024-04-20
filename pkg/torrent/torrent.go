@@ -31,7 +31,7 @@ type bencodeTorrent struct {
 	Info     bencodeInfo `bencode:"info"`
 }
 
-// Open parses a torrent file
+// Parse a torrent file
 func Open(path string) (TorrentFile, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -77,18 +77,45 @@ func (i *bencodeInfo) hash() ([20]byte, error) {
 	return h, nil
 }
 
+// hashBytesLen specifies the length of each torrent piece hash in bytes.
+// According to the specification, each hash is 20 bytes long.
+const hashBytesLen = 20
+
+// isValidPieces validates the pieces by ensuring each piece has a length of 20 bytes.
+// If the total number of bytes is not a multiple of 20, it indicates malformed pieces.
+func isValidPieces(buf []byte) bool {
+	return len(buf)%hashBytesLen != 0
+}
+
+// calculateNumHashes calculates the number of hashes based on the length of the pieces in bytes.
+// It divides the length of the pieces by the length of each hash, which is 20 bytes.
+func calculateNumHashes(buf []byte) int {
+	return len(buf) / hashBytesLen
+}
+
+// splitPieceHashes splits the piece hashes from the bencodeInfo structure into individual hashes.
+// It returns a slice of arrays, where each array represents a piece hash (20 bytes each).
 func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
-	hashLen := 20 // Length of SHA-1 hash
 	buf := []byte(i.Pieces)
-	if len(buf)%hashLen != 0 {
+	if isValidPieces(buf) {
 		err := fmt.Errorf("Received malformed pieces of length %d", len(buf))
 		return nil, err
 	}
-	numHashes := len(buf) / hashLen
+
+	numHashes := calculateNumHashes(buf)
+
+	// Initialize a slice to store the piece hashes.
+	// Each element of the slice is an array of 20 bytes representing a hash.
 	hashes := make([][20]byte, numHashes)
 
+	// Copy piece hashes, 20 bytes at a time, from the buffer.
+	// It extracts segments from the byte array of all pieces (one byte per position).
+	// These segments are of length 20 bytes, which is the length of each piece hash.
+	// It increments by 20 by multiplying the loop index by the hash length in bytes.
 	for i := 0; i < numHashes; i++ {
-		copy(hashes[i][:], buf[i*hashLen:(i+1)*hashLen])
+		dst := hashes[i][:]
+		src := buf[i*hashBytesLen : (i+1)*hashBytesLen]
+		copy(dst, src)
 	}
 	return hashes, nil
 }
